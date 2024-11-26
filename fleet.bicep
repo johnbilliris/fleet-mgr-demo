@@ -1,6 +1,7 @@
 param name string
 param tags object
 param location string = resourceGroup().location
+param vmsize string = 'Standard_D2s_v3'
 
 resource fleetResource 'Microsoft.ContainerService/fleets@2024-04-01' = {
   name: name
@@ -8,6 +9,13 @@ resource fleetResource 'Microsoft.ContainerService/fleets@2024-04-01' = {
   location: location
   identity: {
     type: 'SystemAssigned'
+  }
+  properties: {
+    hubProfile: {
+      agentProfile: {
+        vmSize: vmsize
+      }
+    }
   }
 }
 
@@ -17,8 +25,8 @@ resource updateStrategy_staged 'Microsoft.ContainerService/fleets/updateStrategi
   properties: {
     strategy: {
       stages:[
-        {name: 'canary', groups: [{name: 'canary'}], afterStageWaitInSeconds: 3600 }
-        {name: 'prod', groups: [{name: 'latam'}, {name: 'europe'}]}
+        {name: 'canary', groups: [{name: 'canary'}], afterStageWaitInSeconds: 600 }
+        {name: 'prod', groups: [{name: 'apac'}, {name: 'europe'}]}
       ]
     }
   }
@@ -30,7 +38,7 @@ resource updateStrategy_fast 'Microsoft.ContainerService/fleets/updateStrategies
   properties: {
     strategy: {
       stages:[
-        {name: 'prod', groups: [ {name: 'canary'}, {name: 'latam'}, {name: 'europe'}]}
+        {name: 'prod', groups: [ {name: 'canary'}, {name: 'apac'}, {name: 'europe'}]}
       ]
     }
   }

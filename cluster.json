@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.31.92.45157",
+      "templateHash": "10021495785291436834"
+    }
+  },
+  "parameters": {
+    "tags": {
+      "type": "object"
+    },
+    "member": {
+      "type": "object",
+      "defaultValue": {
+        "name": "member-1-canary-azlinux",
+        "group": "canary",
+        "dnsPrefix": "member1",
+        "location": "eastus2",
+        "agentCount": 2,
+        "agentVMSize": "Standard_D2s_v3",
+        "osType": "Linux",
+        "osSku": "AzureLinux",
+        "windowsProfile": null
+      }
+    }
+  },
+  "variables": {
+    "windowsProfile": "[if(equals(parameters('member').osType, 'Windows'), parameters('member').windowsProfile, null())]",
+    "defaultAP": [
+      {
+        "name": "pool",
+        "count": "[parameters('member').agentCount]",
+        "vmSize": "[parameters('member').agentVMSize]",
+        "osType": "Linux",
+        "osSKU": "AzureLinux",
+        "mode": "System"
+      }
+    ],
+    "agentPools": "[concat(variables('defaultAP'), if(equals(parameters('member').osType, 'Windows'), createArray(createObject('name', 'win', 'count', 1, 'vmSize', parameters('member').agentVMSize, 'osType', parameters('member').osType, 'osSKU', parameters('member').osSKU, 'mode', 'User')), createArray()))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ContainerService/managedClusters",
+      "apiVersion": "2024-02-01",
+      "name": "[parameters('member').name]",
+      "location": "[parameters('member').location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "dnsPrefix": "[parameters('member').dnsPrefix]",
+        "agentPoolProfiles": "[variables('agentPools')]",
+        "autoUpgradeProfile": {
+          "upgradeChannel": "none",
+          "nodeOSUpgradeChannel": "Unmanaged"
+        },
+        "windowsProfile": "[variables('windowsProfile')]",
+        "networkProfile": {
+          "networkPlugin": "[if(equals(parameters('member').osType, 'Windows'), 'azure', 'kubenet')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "cluster": {
+      "type": "object",
+      "value": {
+        "clusterId": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('member').name)]",
+        "clusterName": "[parameters('member').name]"
+      }
+    }
+  }
+}

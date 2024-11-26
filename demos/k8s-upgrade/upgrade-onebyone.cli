@@ -1,0 +1,20 @@
+az login
+
+$resource_group_name = 'rg-fleet-demo'
+$resource_location = 'Australia East'
+$fleet_cluster_name = 'fleet-mgr'
+az fleet get-credentials --resource-group $resource_group_name --name $fleet_cluster_name --overwrite-existing
+
+# Authorise my identity to hub cluster
+$FLEET_ID=$(az fleet show --resource-group $resource_group_name --name $fleet_cluster_name -o tsv --query id)
+$IDENTITY=$(az ad signed-in-user show --query "id" --output tsv)
+$ROLE="Azure Kubernetes Fleet Manager RBAC Cluster Admin"
+az role assignment create --role "${ROLE}" --assignee ${IDENTITY} --scope ${FLEET_ID}
+
+kubectl get memberclusters
+
+
+az fleet updaterun create --resource-group $resource_group_name --fleet-name $fleet_cluster_name --name run-1 --upgrade-type Full --kubernetes-version 1.30.0 --node-image-selection Latest
+
+
+az fleet updaterun start --resource-group $resource_group_name --fleet-name $fleet_cluster_name --name run-1

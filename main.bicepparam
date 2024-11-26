@@ -1,6 +1,7 @@
 using './main.bicep'
 
-param fleetResourceGroup = 'fleet-demo-kcd'
+param fleetResourceGroup = 'rg-fleet-demo'
+param fleetLocation = 'australiaeast'
 var vmsize = 'Standard_D2s_v3'
 
 param members = [
@@ -18,7 +19,7 @@ param members = [
     name: 'member-2-canary-win'
     group: 'canary'
     dnsPrefix: 'member2'
-    location: 'australiacentral'
+    location: 'australiasoutheast'
     agentCount: 2
     agentVMSize: vmsize
     osType: 'Windows'
@@ -29,8 +30,8 @@ param members = [
     }
   }
   {
-    name: 'member-3-latam-azlinux'
-    group: 'latam'
+    name: 'member-3-apac-azlinux'
+    group: 'apac'
     dnsPrefix: 'member3'
     location: 'australiaeast'
     agentCount: 2
@@ -49,8 +50,8 @@ param members = [
     osSKU: 'AzureLinux'
   }
   {
-    name: 'member-5-latam-azlinux'
-    group: 'latam'
+    name: 'member-5-apac-azlinux'
+    group: 'apac'
     dnsPrefix: 'member5'
     location: 'southeastasia'
     agentCount: 2

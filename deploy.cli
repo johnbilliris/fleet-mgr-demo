@@ -1,0 +1,9 @@
+$SUBSCRIPTION_ID='c8703ebc-bc5d-488d-9489-5883c9fde6c2'
+$FLEET_LOCATION="australiaeast"
+
+az deployment sub create \
+--name "fleet-mgr-$(date -I)" \
+--location ${FLEET_LOCATION} \
+--subscription ${SUBSCRIPTION_ID} \
+--template-file main.bicep \
+--parameters main.bicepparam

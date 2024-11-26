@@ -1,0 +1,62 @@
+
+az login
+
+$resource_group_name = 'rg-fleet-demo'
+$resource_location = 'Australia East'
+$fleet_cluster_name = 'fleet-mgr'
+az fleet get-credentials --resource-group $resource_group_name --name $fleet_cluster_name --overwrite-existing
+kubectl config use-context hub
+
+# Authorise my identity to hub cluster
+$FLEET_ID=$(az fleet show --resource-group $resource_group_name --name $fleet_cluster_name -o tsv --query id)
+$IDENTITY=$(az ad signed-in-user show --query "id" --output tsv)
+$ROLE="Azure Kubernetes Fleet Manager RBAC Cluster Admin"
+az role assignment create --role "${ROLE}" --assignee ${IDENTITY} --scope ${FLEET_ID}
+
+kubectl get memberclusters
+
+
+## Propogate to a few member clusters ##
+# Create namespace and CRP
+# Only memebers 3 and 5 will get the deployment
+kubectl config use-context hub
+kubectl create namespace propogate-to-few
+kubectl apply -f ./demos/propogate/ClusterResourcePlacement-few.yaml
+kubectl get clusterresourceplacement crp-few
+kubectl describe clusterresourceplacement crp-few
+
+# Deploy app and service to hub cluster
+kubectl apply -f ./demos/propogate/sample-dep.yaml -n propogate-to-few
+kubectl apply -f ./demos/propogate/sample-svc.yaml -n propogate-to-few
+
+# Check progration on cluster 1
+$resource_group_name = 'rg-fleet-demo-clusters'
+$resource_location = 'West Central US'
+$aks_cluster_name = 'member-1-canary-azlinux'
+az aks get-credentials --resource-group $resource_group_name --name $aks_cluster_name --overwrite-existing
+kubectl config use-context $aks_cluster_name
+
+# Should be deployed
+kubectl get svc -o wide -n propogate-to-few
+
+
+# Check progration on cluster 3
+$resource_group_name = 'rg-fleet-demo-clusters'
+$resource_location = 'Australia East'
+$aks_cluster_name = 'member-3-apac-azlinux'
+az aks get-credentials --resource-group $resource_group_name --name $aks_cluster_name --overwrite-existing
+kubectl config use-context $aks_cluster_name
+
+# Should NOT be deployed
+kubectl get svc -o wide -n propogate-to-few
+
+
+# Clean Up 
+kubectl config use-context hub
+kubectl delete clusterresourceplacement crp-few
+kubectl delete namespace propogate-to-few
+
+az role assignment delete --role "${ROLE}" --assignee ${IDENTITY} --scope ${FLEET_ID}
+## Propogate to a few member clusters ##
+
+

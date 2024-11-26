@@ -1,0 +1,14 @@
+apiVersion: placement.kubernetes-fleet.io/v1
+kind: ClusterResourcePlacement
+metadata:
+  name: crp-one
+spec:
+  resourceSelectors:
+    - group: ""
+      kind: Namespace
+      version: v1          
+      name: propogate-to-one
+  policy:
+    placementType: PickFixed
+    clusterNames:
+    - member-3-apac-azlinux

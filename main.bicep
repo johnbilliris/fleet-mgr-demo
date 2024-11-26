@@ -79,6 +79,7 @@ module fleet './fleet.bicep' = {
     name: fleetName
     location: fleetLocation
     tags: tags
+    vmsize: vmsize
   }
 }
 

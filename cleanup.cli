@@ -1,0 +1,2 @@
+az group delete -n rg-fleet-demo-clusters --no-wait --yes
+az group delete -n rg-fleet-demo --no-wait --yes
